@@ -81,7 +81,8 @@
             background-color: rgba(0, 0, 0, 0.6);
             padding: 10px 15px;
             border-radius: 8px;
-            display: flex;
+            /* Changed from flex to none */
+            display: none;
             flex-direction: column;
             gap: 5px;
             z-index: 90;
@@ -328,6 +329,7 @@
         // --- Firebase Globals (Provided by Canvas Environment) ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // Corrected: Use __initial_auth_token instead of initialAuthToken in its own declaration
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let db;
@@ -443,6 +445,7 @@
         let currentPetType = null; // Stores the type of the current pet
         let highestLevelReached = 1; // Track highest level for persistence
         let totalGameTimeRecord = 0; // Best time for completing all levels
+        let gameRunning = false; // Added this line
 
         let situpProgress = 0;
         const SITUP_MAX_PROGRESS = 100;
@@ -591,6 +594,7 @@
                     gameUI.style.display = 'flex';
                     if (backgroundMusic) startBackgroundMusic();
                     // Lock pointer when starting game
+                    console.log("Attempting pointer lock. Renderer:", renderer); // Debugging line
                     if (renderer && renderer.domElement && document.pointerLockElement !== renderer.domElement) {
                         renderer.domElement.requestPointerLock();
                     }
@@ -1305,7 +1309,7 @@
             }
             if (event.key === 'F2' && gameState === 'PLAYING') { // F2 to open shop only during gameplay
                 setGameState('SHOP');
-                if (document.pointerLockElement === renderer.domElement) {
+                if (renderer && document.pointerLockElement === renderer.domElement) { // Added renderer check
                     document.exitPointerLock(); // Release pointer lock for shop
                 }
             }
@@ -1477,7 +1481,7 @@
                         const objCenter = objBoundingBox.getCenter(new THREE.Vector3()); // Define objCenter here
 
                         // Calculate intersection
-                        // const intersection = playerBoundingBox.intersect(objBoundingBox, new THREE.Box3()); // This line is not needed for simple push-back
+                        // const intersection = playerBoundingBox.intersectsBox(objBoundingBox); // This line is not needed for simple push-back
 
                         // Determine which axis has the smallest overlap
                         const xOverlap = Math.min(playerBoundingBox.max.x - objBoundingBox.min.x, objBoundingBox.max.x - playerBoundingBox.min.x);
