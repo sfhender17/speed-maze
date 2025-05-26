@@ -232,6 +232,8 @@
     </style>
 </head>
 <body>
+    <div id="loading-spinner" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); color: white; display: flex; align-items: center; justify-content: center; font-size: 2em; z-index: 1000;">Loading Game...</div>
+
     <div id="game-ui">
         <div>Coins: <span id="coins-display">0</span></div>
         <div>Level: <span id="level-display">1</span></div>
@@ -453,6 +455,12 @@
 
         // --- Three.js Scene Globals ---
         let scene, camera, renderer; // Declared globally here
+        let foodItems = []; // Array to hold food objects
+        let enemies = []; // Array to hold enemy objects
+        let coinsInLevel = []; // Array to hold coin objects
+        let dynamicObstacles = []; // Array to hold dynamic obstacle objects
+        let laserDoor; // Laser door object
+        let currentPet; // Current pet object - This is the global declaration.
 
         // --- Player ---
         let player; // Will be defined in initGame
@@ -518,7 +526,6 @@
         const gameOverCoins = document.getElementById('game-over-coins');
         const gameOverLevel = document.getElementById('game-over-level');
         const restartGameOverButton = document.getElementById('restart-game-over-button');
-        // Renamed and re-referenced this button
         const goToShopGameOverButton = document.getElementById('go-to-shop-game-over-button');
 
         const gameWonScreen = document.getElementById('game-won-screen');
@@ -588,6 +595,7 @@
             switch (newState) {
                 case 'MENU':
                     mainMenu.style.display = 'flex';
+                    console.log("Main Menu display set to flex:", mainMenu.style.display); // Debug log
                     if (menuMusic) startMenuMusic();
                     break;
                 case 'PLAYING':
@@ -882,7 +890,7 @@
             laserGridGroup.isLaserGrid = true;
             laserGridGroup.isActive = true; // Starts active
             laserGridGroup.interval = interval;
-            laserGridGroup.lastToggleTime = Date.2now();
+            laserGridGroup.lastToggleTime = Date.now(); 
 
             const laserMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.6, emissive: 0xff0000, emissiveIntensity: 0.8 });
 
@@ -1001,61 +1009,71 @@
 
         // --- Game Setup and Flow ---
         async function initGame() { // Made initGame async
-            // Scene, Camera, Renderer setup
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
+            try {
+                // Scene, Camera, Renderer setup
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                document.body.appendChild(renderer.domElement);
 
-            // Add levelObjects to scene after scene is defined
-            scene.add(levelObjects);
+                // Add levelObjects to scene after scene is defined
+                scene.add(levelObjects);
 
-            // Add lights
-            scene.add(new THREE.AmbientLight(0x404040, 2)); // Soft white light
-            scene.add(new THREE.DirectionalLight(0xffffff, 1)); // White light
-            scene.add(new THREE.HemisphereLight(0xadd8e6, 0x000000, 0.5)); // Sky color, ground color, intensity
+                // Add lights
+                scene.add(new THREE.AmbientLight(0x404040, 2)); // Soft white light
+                scene.add(new THREE.DirectionalLight(0xffffff, 1)); // White light
+                scene.add(new THREE.HemisphereLight(0xadd8e6, 0x000000, 0.5)); // Sky color, ground color, intensity
 
-            // Skybox (simple gradient for now)
-            const skyGeo = new THREE.SphereGeometry(500, 32, 32);
-            const skyMat = new THREE.MeshBasicMaterial({
-                color: 0x87ceeb, // Light blue
-                side: THREE.BackSide
-            });
-            const sky = new THREE.Mesh(skyGeo, skyMat);
-            scene.add(sky);
+                // Skybox (simple gradient for now)
+                const skyGeo = new THREE.SphereGeometry(500, 32, 32);
+                const skyMat = new THREE.MeshBasicMaterial({
+                    color: 0x87ceeb, // Light blue
+                    side: THREE.BackSide
+                });
+                const sky = new THREE.Mesh(skyGeo, skyMat);
+                scene.add(sky);
 
-            // Create player model
-            createPlayerModel();
+                // Create player model
+                createPlayerModel();
 
-            // Setup audio - AWAIT this call
-            await setupAudio();
+                // Setup audio - AWAIT this call
+                await setupAudio();
 
-            // Set initial game state to MENU
-            setGameState('MENU');
+                // Set initial game state to MENU
+                setGameState('MENU');
 
-            // Attach mouse look event listeners after renderer.domElement is available
-            renderer.domElement.addEventListener('click', () => {
-                if (gameState === 'PLAYING' && !isPointerLocked) {
-                    renderer.domElement.requestPointerLock();
-                }
-            });
+                // Hide loading spinner after initial state is set
+                document.getElementById('loading-spinner').style.display = 'none';
 
-            document.addEventListener('pointerlockchange', () => {
-                isPointerLocked = document.pointerLockElement === renderer.domElement;
-                if (isPointerLocked) {
-                    document.addEventListener('mousemove', onMouseMove, false);
-                } else {
-                    document.removeEventListener('mousemove', onMouseMove, false);
-                    // If pointer lock is lost during gameplay, pause the game
-                    if (gameState === 'PLAYING') {
-                        pauseGame();
+                // Attach mouse look event listeners after renderer.domElement is available
+                renderer.domElement.addEventListener('click', () => {
+                    if (gameState === 'PLAYING' && !isPointerLocked) {
+                        renderer.domElement.requestPointerLock();
                     }
-                }
-            });
+                });
 
-            // Start animation loop
-            animate();
+                document.addEventListener('pointerlockchange', () => {
+                    isPointerLocked = document.pointerLockElement === renderer.domElement;
+                    if (isPointerLocked) {
+                        document.addEventListener('mousemove', onMouseMove, false);
+                    } else {
+                        document.removeEventListener('mousemove', onMouseMove, false);
+                        // If pointer lock is lost during gameplay, pause the game
+                        if (gameState === 'PLAYING') {
+                            pauseGame();
+                        }
+                    }
+                });
+
+                // Start animation loop
+                animate();
+            } catch (error) {
+                console.error("Error during game initialization:", error);
+                showMessage("An error occurred during game setup. Please check console.", 5000);
+                // Ensure loading spinner is hidden even on error
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
         }
 
         function resetGame() {
@@ -1240,7 +1258,8 @@
         }
 
         // --- Pets ---
-        let currentPet = null; // Stores the current pet mesh
+        // Removed 'let' here as currentPet is already declared globally
+        // let currentPet = null; // Stores the current pet mesh
         const petTypes = ['Dog', 'Fox', 'Wolf'];
         const petColors = {
             'Dog': 0x8B4513, // Brown
@@ -1257,7 +1276,7 @@
             const pet = createPetModel(type);
             pet.position.set(player.position.x + 1, player.position.y, player.position.z + 1); // Initially beside player
             scene.add(pet);
-            currentPet = pet;
+            currentPet = pet; // Assign to the globally declared variable
             currentPetType = type; // Store the type for persistence
             playerSpeedBoost = speedBoost;
             if (showMsg) {
@@ -1344,7 +1363,6 @@
         restartLevelButton.addEventListener('click', restartLevel);
         mainMenuFromPause.addEventListener('click', goToMainMenu);
         restartGameOverButton.addEventListener('click', startGame);
-        // Updated event listener for the "Go to Shop" button on game over
         goToShopGameOverButton.addEventListener('click', () => setGameState('SHOP'));
         restartGameWonButton.addEventListener('click', startGame);
         mainMenuGameWonButton.addEventListener('click', goToMainMenu);
@@ -1660,8 +1678,22 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
+        // Mouse movement for camera control
+        function onMouseMove(event) {
+            if (isPointerLocked && gameState === 'PLAYING') {
+                const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+                const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+                yaw.rotation.y -= movementX * pointerSpeed;
+                pitch.rotation.x -= movementY * pointerSpeed;
+
+                // Clamp pitch to prevent looking too far up or down
+                pitch.rotation.x = Math.max(-PI_2, Math.min(PI_2, pitch.rotation.x));
+            }
+        }
+
         // Initialize the game when the window loads
-        window.onload = async function() { // Made window.onload function async
+        window.onload = async function() {
             await initGame();
         };
     </script>
