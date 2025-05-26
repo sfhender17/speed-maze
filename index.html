@@ -3,31 +3,237 @@
 <head>
     <title>+1 Speed Maze</title>
     <style>
-        body { margin: 0; }
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
         canvas { display: block; }
+        #game-ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 1.2em;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5em;
+            display: none; /* Hidden by default */
+            z-index: 100;
+        }
+        #shop-ui {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.3em;
+            display: none; /* Hidden by default */
+            z-index: 101;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+            border: 2px solid cyan;
+            min-width: 300px;
+        }
+        #shop-ui h2 {
+            margin-top: 0;
+            color: cyan;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        #shop-ui .egg-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        #shop-ui .egg-button {
+            background-color: #333;
+            color: white;
+            border: 2px solid #555;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+        }
+        #shop-ui .egg-button:hover {
+            background-color: #555;
+            border-color: cyan;
+            transform: translateY(-3px);
+        }
+        #shop-ui .egg-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        #shop-ui .egg-button span {
+            font-weight: bold;
+            color: lightgreen;
+        }
+        #shop-ui button.close-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        #shop-ui button.close-button:hover {
+            background-color: #c82333;
+        }
+        #lobby-ui {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5em;
+            display: none; /* Hidden by default */
+            z-index: 99;
+        }
+        #lobby-ui button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px;
+        }
+        #lobby-ui button:hover {
+            background-color: #0056b3;
+        }
+        #situp-progress {
+            width: 80%;
+            background-color: #333;
+            border-radius: 5px;
+            height: 20px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        #situp-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #28a745;
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
     </style>
 </head>
 <body>
+    <div id="game-ui">
+        <div>Coins: <span id="coins-display">0</span></div>
+        <div>Level: <span id="level-display">1</span></div>
+        <div>Time Left: <span id="time-display">5:00</span></div>
+        <div>Stamina: <span id="stamina-display">100</span></div>
+        <div>Speed: <span id="speed-display">1.0x</span></div>
+    </div>
+
+    <div id="message-box"></div>
+    <div id="shop-ui">
+        <h2>Pet Shop</h2>
+        <p>Current Coins: <span id="shop-coins-display">0</span></p>
+        <div class="egg-container">
+            <button class="egg-button" data-cost="10">
+                Small Egg<br><span>10 Coins</span>
+            </button>
+            <button class="egg-button" data-cost="50">
+                Medium Egg<br><span>50 Coins</span>
+            </button>
+            <button class="egg-button" data-cost="100">
+                Large Egg<br><span>100 Coins</span>
+            </button>
+        </div>
+        <div id="shop-message" style="color: yellow; margin-top: 10px;"></div>
+        <button class="close-button" id="close-shop-button">Close Shop</button>
+    </div>
+
+    <div id="lobby-ui">
+        <h2>Lobby</h2>
+        <p>Take a break before the next level!</p>
+        <p>Stamina: <span id="lobby-stamina-display">100</span></p>
+        <button id="situp-button">Do Sit-ups (Press to regain stamina)</button>
+        <div id="situp-progress"><div id="situp-bar"></div></div>
+        <button id="next-level-button">Enter Next Level</button>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.155.0/three.min.js"></script>
     <script>
+        // --- Scene Setup ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Player
+        // Add a simple sky (background color)
+        scene.background = new THREE.Color(0x87ceeb); // Light blue sky
+
+        // Add basic ambient light
+        const ambientLight = new THREE.AmbientLight(0x404040, 2); // soft white light
+        scene.add(ambientLight);
+
+        // Add directional light for shadows (though we won't implement complex shadows yet)
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 7);
+        scene.add(directionalLight);
+
+        // --- Game State Variables ---
+        let currentLevel = 1;
+        let coins = 0;
+        let totalGameTime = 5 * 60; // 5 minutes in seconds
+        let levelTimeLimit = 60; // 1 minute per level
+        let currentLevelTimer = levelTimeLimit;
+        let stamina = 100;
+        const MAX_STAMINA = 100;
+        let playerSpeedBoost = 0; // Additional speed from pets
+        let gameRunning = true;
+        let inLobby = false;
+        let shopOpen = false;
+        let situpProgress = 0;
+        const SITUP_MAX_PROGRESS = 100;
+        const SITUP_STAMINA_PER_CLICK = 5;
+
+        // --- Player ---
         const playerGeometry = new THREE.BoxGeometry(1, 2, 1);
-        const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Green for player
         const player = new THREE.Mesh(playerGeometry, playerMaterial);
         scene.add(player);
 
         // First-person camera setup
-        camera.position.set(0, 1.5, 0); // Position the camera inside the player (roughly head height)
+        camera.position.set(0, 0.8, 0); // Position the camera inside the player (roughly head height)
         player.add(camera); // Make the camera a child of the player object
+        player.position.y = 1; // Start player on the ground
 
-        // Movement variables
-        const moveSpeed = 0.1;
+        // Player movement variables
+        let moveSpeed = 0.1; // Base movement speed
         const jumpForce = 0.2;
         const gravity = -0.01;
         let velocityY = 0;
@@ -40,96 +246,482 @@
             right: false
         };
 
-        // Event listeners for key presses
+        // Player bounding box for collision detection
+        const playerBoundingBox = new THREE.Box3();
+
+        // --- UI Elements ---
+        const coinsDisplay = document.getElementById('coins-display');
+        const levelDisplay = document.getElementById('level-display');
+        const timeDisplay = document.getElementById('time-display');
+        const staminaDisplay = document.getElementById('stamina-display');
+        const speedDisplay = document.getElementById('speed-display');
+        const messageBox = document.getElementById('message-box');
+        const shopUI = document.getElementById('shop-ui');
+        const shopCoinsDisplay = document.getElementById('shop-coins-display');
+        const shopMessage = document.getElementById('shop-message');
+        const closeShopButton = document.getElementById('close-shop-button');
+        const eggButtons = document.querySelectorAll('.egg-button');
+        const lobbyUI = document.getElementById('lobby-ui');
+        const lobbyStaminaDisplay = document.getElementById('lobby-stamina-display');
+        const situpButton = document.getElementById('situp-button');
+        const situpProgressBar = document.getElementById('situp-bar');
+        const nextLevelButton = document.getElementById('next-level-button');
+
+        function updateUI() {
+            coinsDisplay.textContent = coins;
+            levelDisplay.textContent = currentLevel;
+            const minutes = Math.floor(totalGameTime / 60);
+            const seconds = Math.floor(totalGameTime % 60).toString().padStart(2, '0');
+            timeDisplay.textContent = `${minutes}:${seconds}`;
+            staminaDisplay.textContent = Math.floor(stamina);
+            speedDisplay.textContent = `${(1 + playerSpeedBoost).toFixed(1)}x`;
+            shopCoinsDisplay.textContent = coins;
+            lobbyStaminaDisplay.textContent = Math.floor(stamina);
+            situpProgressBar.style.width = `${(situpProgress / SITUP_MAX_PROGRESS) * 100}%`;
+        }
+
+        function showMessage(msg, duration = 2000) {
+            messageBox.textContent = msg;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        function toggleShop(open) {
+            shopOpen = open;
+            shopUI.style.display = open ? 'block' : 'none';
+            if (open) {
+                shopCoinsDisplay.textContent = coins;
+                shopMessage.textContent = ''; // Clear previous messages
+            }
+        }
+
+        function toggleLobby(open) {
+            inLobby = open;
+            lobbyUI.style.display = open ? 'block' : 'none';
+            if (open) {
+                lobbyStaminaDisplay.textContent = Math.floor(stamina);
+                situpProgress = 0; // Reset sit-up progress
+                situpProgressBar.style.width = '0%';
+            }
+        }
+
+        // --- Game Objects (Levels, Obstacles, Enemies, Food, Laser Door) ---
+        const levelObjects = new THREE.Group(); // Group to hold all objects for the current level
+        scene.add(levelObjects);
+
+        let laserDoor; // Reference to the current level's laser door
+        let foodItems = []; // Array to hold food meshes
+        let enemies = []; // Array to hold enemy meshes
+
+        // Function to create a simple blocky wall
+        function createWall(x, y, z, width, height, depth, color = 0xaaaaaa) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshBasicMaterial({ color: color });
+            const wall = new THREE.Mesh(geometry, material);
+            wall.position.set(x, y + height / 2, z); // Position based on center
+            return wall;
+        }
+
+        // Function to create a floor
+        function createFloor(x, y, z, width, depth, color = 0x808080) {
+            const geometry = new THREE.BoxGeometry(width, 1, depth);
+            const material = new THREE.MeshBasicMaterial({ color: color });
+            const floor = new THREE.Mesh(geometry, material);
+            floor.position.set(x, y - 0.5, z); // Position based on center
+            return floor;
+        }
+
+        // Function to create a simple obstacle (e.g., a static block)
+        function createObstacle(x, y, z, width = 2, height = 2, depth = 2, color = 0xff0000) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshBasicMaterial({ color: color });
+            const obstacle = new THREE.Mesh(geometry, material);
+            obstacle.position.set(x, y + height / 2, z);
+            return obstacle;
+        }
+
+        // Function to create a food item
+        function createFood(x, y, z, color = 0xffa500) { // Orange for food
+            const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const material = new THREE.MeshBasicMaterial({ color: color });
+            const food = new THREE.Mesh(geometry, material);
+            food.position.set(x, y + 0.25, z);
+            food.isFood = true; // Custom property for identification
+            return food;
+        }
+
+        // Function to create an enemy (simple cube for now)
+        function createEnemy(x, y, z, color = 0x8b4513, type = 'wolf') { // Brown for wolf
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshBasicMaterial({ color: color });
+            const enemy = new THREE.Mesh(geometry, material);
+            enemy.position.set(x, y + 0.5, z);
+            enemy.type = type;
+            enemy.speed = 0.02 + (currentLevel * 0.005); // Enemies get faster
+            enemy.direction = new THREE.Vector3(Math.random() > 0.5 ? 1 : -1, 0, Math.random() > 0.5 ? 1 : -1).normalize();
+            enemy.range = 5; // How far it patrols
+            enemy.initialPosition = enemy.position.clone();
+            enemy.isEnemy = true;
+            return enemy;
+        }
+
+        // Function to generate a level
+        function generateLevel(levelNum) {
+            // Clear previous level objects
+            while (levelObjects.children.length > 0) {
+                levelObjects.remove(levelObjects.children[0]);
+            }
+            foodItems = [];
+            enemies = [];
+
+            // Reset player position for new level
+            player.position.set(0, 1, 0);
+            player.rotation.set(0, 0, 0); // Reset player rotation
+
+            // Level specific difficulty adjustments
+            const levelSize = 20 + levelNum * 5; // Levels get larger
+            const numObstacles = 2 + Math.floor(levelNum / 2);
+            const numFood = 1 + Math.floor(levelNum / 3);
+            const numEnemies = levelNum > 5 ? (levelNum - 5) * 1 : 0; // Enemies after level 5
+
+            // Floor
+            levelObjects.add(createFloor(0, 0, 0, levelSize, levelSize));
+
+            // Walls (simple square room for now)
+            levelObjects.add(createWall(0, 0, -levelSize / 2, levelSize, 3, 1)); // Back wall
+            levelObjects.add(createWall(0, 0, levelSize / 2, levelSize, 3, 1));  // Front wall
+            levelObjects.add(createWall(-levelSize / 2, 0, 0, 1, 3, levelSize)); // Left wall
+            levelObjects.add(createWall(levelSize / 2, 0, 0, 1, 3, levelSize));  // Right wall
+
+            // Obstacles
+            for (let i = 0; i < numObstacles; i++) {
+                const x = (Math.random() - 0.5) * (levelSize - 5);
+                const z = (Math.random() - 0.5) * (levelSize - 5);
+                levelObjects.add(createObstacle(x, 0, z));
+            }
+
+            // Food items
+            for (let i = 0; i < numFood; i++) {
+                const x = (Math.random() - 0.5) * (levelSize - 5);
+                const z = (Math.random() - 0.5) * (levelSize - 5);
+                const food = createFood(x, 0, z);
+                levelObjects.add(food);
+                foodItems.push(food);
+            }
+
+            // Enemies
+            for (let i = 0; i < numEnemies; i++) {
+                const x = (Math.random() - 0.5) * (levelSize - 5);
+                const z = (Math.random() - 0.5) * (levelSize - 5);
+                const enemy = createEnemy(x, 0, z);
+                levelObjects.add(enemy);
+                enemies.push(enemy);
+            }
+
+            // Laser Door
+            laserDoor = new THREE.Mesh(
+                new THREE.BoxGeometry(3, 3, 0.5),
+                new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5, emissive: 0x0000ff, emissiveIntensity: 0.5 })
+            );
+            laserDoor.position.set(levelSize / 2 - 2, 1.5, levelSize / 2 - 2); // Position near a corner exit
+            levelObjects.add(laserDoor);
+            laserDoor.isLaserDoor = true; // Custom property for identification
+
+            currentLevelTimer = levelTimeLimit; // Reset level timer
+            showMessage(`Level ${levelNum} - Go!`, 3000);
+        }
+
+        // --- Pets ---
+        let currentPet = null; // Stores the current pet mesh
+        const petTypes = ['Dog', 'Fox', 'Wolf'];
+        const petColors = {
+            'Dog': 0x8B4513, // Brown
+            'Fox': 0xFF4500, // Orange-Red
+            'Wolf': 0x708090  // Slate Gray
+        };
+
+        function createPet(type, speedBoost) {
+            if (currentPet) {
+                scene.remove(currentPet);
+                currentPet = null;
+            }
+
+            const petGeometry = new THREE.BoxGeometry(0.7, 0.7, 0.7); // Simple cube for pet
+            const petMaterial = new THREE.MeshBasicMaterial({ color: petColors[type] });
+            const pet = new THREE.Mesh(petGeometry, petMaterial);
+            pet.position.set(player.position.x + 1, player.position.y, player.position.z + 1); // Initially beside player
+            scene.add(pet);
+            currentPet = pet;
+            playerSpeedBoost = speedBoost;
+            showMessage(`You got a ${type}! Speed increased by ${Math.round(speedBoost * 100)}%`, 3000);
+            updateUI();
+        }
+
+        // --- Event Listeners ---
         document.addEventListener('keydown', (event) => {
-            switch (event.key) {
-                case 'ArrowUp':
-                    moveDirection.forward = true;
-                    break;
-                case 'ArrowDown':
-                    moveDirection.backward = true;
-                    break;
-                case 'ArrowLeft':
-                    moveDirection.left = true;
-                    break;
-                case 'ArrowRight':
-                    moveDirection.right = true;
-                    break;
-                case ' ': // Spacebar for jump
-                    if (!isJumping) {
-                        velocityY = jumpForce;
-                        isJumping = true;
-                    }
-                    break;
+            if (gameRunning && !inLobby && !shopOpen) {
+                switch (event.key) {
+                    case 'ArrowUp':
+                        moveDirection.forward = true;
+                        break;
+                    case 'ArrowDown':
+                        moveDirection.backward = true;
+                        break;
+                    case 'ArrowLeft':
+                        moveDirection.left = true;
+                        break;
+                    case 'ArrowRight':
+                        moveDirection.right = true;
+                        break;
+                    case ' ': // Spacebar for jump
+                        if (!isJumping && stamina > 0) {
+                            velocityY = jumpForce;
+                            isJumping = true;
+                            stamina -= 5; // Stamina cost for jump
+                            if (stamina < 0) stamina = 0;
+                        }
+                        break;
+                }
+            }
+            if (event.key === 'F2') {
+                toggleShop(!shopOpen);
             }
         });
 
         document.addEventListener('keyup', (event) => {
-            switch (event.key) {
-                case 'ArrowUp':
-                    moveDirection.forward = false;
-                    break;
-                case 'ArrowDown':
-                    moveDirection.backward = false;
-                    break;
-                case 'ArrowLeft':
-                    moveDirection.left = false;
-                    break;
-                case 'ArrowRight':
-                    moveDirection.right = false;
-                    break;
+            if (gameRunning && !inLobby && !shopOpen) {
+                switch (event.key) {
+                    case 'ArrowUp':
+                        moveDirection.forward = false;
+                        break;
+                    case 'ArrowDown':
+                        moveDirection.backward = false;
+                        break;
+                    case 'ArrowLeft':
+                        moveDirection.left = false;
+                        break;
+                    case 'ArrowRight':
+                        moveDirection.right = false;
+                        break;
+                }
             }
         });
 
-        // Basic first level (floor and a colored block)
-        const floorGeometry = new THREE.BoxGeometry(20, 1, 20);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.position.y = -0.5;
-        scene.add(floor);
+        closeShopButton.addEventListener('click', () => toggleShop(false));
 
-        const obstacleGeometry = new THREE.BoxGeometry(2, 2, 2);
-        const obstacleMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const obstacle = new THREE.Mesh(obstacleGeometry, obstacleMaterial);
-        obstacle.position.set(5, 1, 0);
-        scene.add(obstacle);
+        eggButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const cost = parseInt(button.dataset.cost);
+                if (coins >= cost) {
+                    coins -= cost;
+                    const randomPetType = petTypes[Math.floor(Math.random() * petTypes.length)];
+                    const randomSpeedBoost = (Math.random() * 0.4) + 0.1; // 0.1 to 0.5 (10% to 50%)
+                    createPet(randomPetType, randomSpeedBoost);
+                    shopMessage.textContent = `You bought a ${randomPetType} egg!`;
+                    updateUI();
+                } else {
+                    shopMessage.textContent = 'Not enough coins!';
+                }
+            });
+        });
 
-        // Laser Door
-        const laserDoorGeometry = new THREE.BoxGeometry(3, 3, 0.5);
-        const laserDoorMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 });
-        const laserDoor = new THREE.Mesh(laserDoorGeometry, laserDoorMaterial);
-        laserDoor.position.set(10, 1.5, 0); // Position it somewhere visible
-        scene.add(laserDoor);
-
-        function updatePlayer() {
-            // Movement
-            if (moveDirection.forward) player.translateZ(-moveSpeed);
-            if (moveDirection.backward) player.translateZ(moveSpeed);
-            if (moveDirection.left) player.translateX(-moveSpeed);
-            if (moveDirection.right) player.translateX(moveSpeed);
-
-            // Jumping and gravity
-            velocityY += gravity;
-            player.position.y += velocityY;
-
-            // Ground detection (very basic for now)
-            if (player.position.y < 1) {
-                player.position.y = 1;
-                velocityY = 0;
-                isJumping = false;
+        situpButton.addEventListener('mousedown', () => {
+            if (stamina < MAX_STAMINA) {
+                situpProgressInterval = setInterval(() => {
+                    situpProgress += 1;
+                    if (situpProgress > SITUP_MAX_PROGRESS) situpProgress = SITUP_MAX_PROGRESS;
+                    situpProgressBar.style.width = `${(situpProgress / SITUP_MAX_PROGRESS) * 100}%`;
+                }, 10); // Faster progress for demonstration
             }
+        });
+
+        situpButton.addEventListener('mouseup', () => {
+            clearInterval(situpProgressInterval);
+            const staminaGained = Math.floor((situpProgress / SITUP_MAX_PROGRESS) * (MAX_STAMINA / 4)); // Max 25 stamina from one situp session
+            stamina += staminaGained;
+            if (stamina > MAX_STAMINA) stamina = MAX_STAMINA;
+            situpProgress = 0; // Reset progress
+            situpProgressBar.style.width = '0%';
+            lobbyStaminaDisplay.textContent = Math.floor(stamina);
+            showMessage(`Gained ${staminaGained} stamina!`, 1500);
+        });
+
+        nextLevelButton.addEventListener('click', () => {
+            toggleLobby(false);
+            currentLevel++;
+            if (currentLevel > 10) {
+                endGame(true); // Player won all levels
+            } else {
+                generateLevel(currentLevel);
+                gameRunning = true;
+            }
+        });
+
+        // --- Game Logic ---
+        function checkCollisions() {
+            playerBoundingBox.setFromObject(player);
+
+            // Check collision with laser door
+            if (laserDoor && playerBoundingBox.intersectsBox(new THREE.Box3().setFromObject(laserDoor))) {
+                if (gameRunning) { // Only trigger if game is running
+                    gameRunning = false; // Pause game
+                    coins += (10 * currentLevel); // Coins increase with level
+                    showMessage(`Level ${currentLevel} Complete! +${10 * currentLevel} Coins!`, 2000);
+                    setTimeout(() => {
+                        toggleLobby(true); // Go to lobby
+                    }, 2500);
+                }
+            }
+
+            // Check collision with food items
+            foodItems.forEach((food, index) => {
+                if (playerBoundingBox.intersectsBox(new THREE.Box3().setFromObject(food))) {
+                    stamina += 20; // Gain 20 stamina per food
+                    if (stamina > MAX_STAMINA) stamina = MAX_STAMINA;
+                    levelObjects.remove(food);
+                    foodItems.splice(index, 1); // Remove from array
+                    showMessage('Ate food! Stamina +20', 1000);
+                }
+            });
+
+            // Check collision with enemies (simple reset for now)
+            enemies.forEach(enemy => {
+                if (playerBoundingBox.intersectsBox(new THREE.Box3().setFromObject(enemy))) {
+                    showMessage('Hit by enemy! Returning to start...', 2000);
+                    player.position.set(0, 1, 0); // Reset player position
+                    stamina -= 10; // Lose stamina on hit
+                    if (stamina < 0) stamina = 0;
+                }
+            });
+
+            // Basic wall collision (prevent going through walls)
+            levelObjects.children.forEach(obj => {
+                if (obj.geometry.type === 'BoxGeometry' && !obj.isLaserDoor && !obj.isFood && !obj.isEnemy) { // Assuming walls are BoxGeometry
+                    const objBoundingBox = new THREE.Box3().setFromObject(obj);
+                    if (playerBoundingBox.intersectsBox(objBoundingBox)) {
+                        // Simple push-back logic
+                        const playerCenter = playerBoundingBox.getCenter(new THREE.Vector3());
+                        const objCenter = objBoundingBox.getCenter(new THREE.Vector3());
+
+                        const overlapX = (playerBoundingBox.max.x - objBoundingBox.min.x) < (objBoundingBox.max.x - playerBoundingBox.min.x) ?
+                                         (playerBoundingBox.max.x - objBoundingBox.min.x) : -(objBoundingBox.max.x - playerBoundingBox.min.x);
+                        const overlapZ = (playerBoundingBox.max.z - objBoundingBox.min.z) < (objBoundingBox.max.z - playerBoundingBox.min.z) ?
+                                         (playerBoundingBox.max.z - objBoundingBox.min.z) : -(objBoundingBox.max.z - playerBoundingBox.min.z);
+
+                        if (Math.abs(overlapX) < Math.abs(overlapZ)) {
+                            player.position.x -= overlapX * 1.1; // Push back slightly more than overlap
+                        } else {
+                            player.position.z -= overlapZ * 1.1;
+                        }
+                    }
+                }
+            });
         }
 
-        function animate() {
+        function endGame(won) {
+            gameRunning = false;
+            if (won) {
+                showMessage('Congratulations! You completed all levels!', 5000);
+            } else {
+                showMessage('Game Over! Time ran out or stamina depleted!', 5000);
+            }
+            // Optionally, add a restart button or redirect
+        }
+
+        // --- Animation Loop ---
+        let lastUpdateTime = 0;
+        const totalGameClock = new THREE.Clock(); // For total game time
+        totalGameClock.start();
+
+        function animate(currentTime) {
             requestAnimationFrame(animate);
-            updatePlayer();
+
+            if (!lastUpdateTime) lastUpdateTime = currentTime;
+            const deltaTime = (currentTime - lastUpdateTime) / 1000; // Convert to seconds
+            lastUpdateTime = currentTime;
+
+            if (gameRunning && !inLobby && !shopOpen) {
+                // Update total game time
+                totalGameTime -= deltaTime;
+                if (totalGameTime <= 0) {
+                    totalGameTime = 0;
+                    endGame(false); // Game over due to time
+                }
+
+                // Update level timer
+                currentLevelTimer -= deltaTime;
+                if (currentLevelTimer <= 0) {
+                    currentLevelTimer = 0;
+                    showMessage('Time for this level ran out! Try again!', 2000);
+                    player.position.set(0, 1, 0); // Reset player to start of level
+                    currentLevelTimer = levelTimeLimit; // Reset level timer
+                    stamina -= 20; // Penalty for running out of time
+                    if (stamina < 0) stamina = 0;
+                }
+
+                // Stamina depletion
+                if ((moveDirection.forward || moveDirection.backward || moveDirection.left || moveDirection.right) && stamina > 0) {
+                    stamina -= 0.05; // Stamina depletion while moving
+                    if (stamina < 0) stamina = 0;
+                }
+                if (stamina === 0 && (moveDirection.forward || moveDirection.backward || moveDirection.left || moveDirection.right || isJumping)) {
+                    showMessage('Out of stamina! Find food or do sit-ups!', 1500);
+                    // Optionally slow down player significantly or stop movement
+                }
+
+                // Update player movement
+                const actualMoveSpeed = moveSpeed * (1 + playerSpeedBoost);
+                if (moveDirection.forward) player.translateZ(-actualMoveSpeed);
+                if (moveDirection.backward) player.translateZ(actualMoveSpeed);
+                if (moveDirection.left) player.translateX(-actualMoveSpeed);
+                if (moveDirection.right) player.translateX(actualMoveSpeed);
+
+                // Jumping and gravity
+                velocityY += gravity;
+                player.position.y += velocityY;
+
+                // Ground detection (very basic for now)
+                if (player.position.y < 1) {
+                    player.position.y = 1;
+                    velocityY = 0;
+                    isJumping = false;
+                }
+
+                // Update enemy movement (simple patrol)
+                enemies.forEach(enemy => {
+                    enemy.position.add(enemy.direction.clone().multiplyScalar(enemy.speed));
+                    // Reverse direction if it moves too far from initial position
+                    if (enemy.position.distanceTo(enemy.initialPosition) > enemy.range) {
+                        enemy.direction.negate();
+                    }
+                });
+
+                // Update pet position
+                if (currentPet) {
+                    // Pet follows player with a slight delay/offset
+                    const targetPosition = new THREE.Vector3(player.position.x + 1, player.position.y, player.position.z + 1);
+                    currentPet.position.lerp(targetPosition, 0.1); // Smooth follow
+                }
+
+                checkCollisions();
+            }
+
+            updateUI();
             renderer.render(scene, camera);
         }
-        animate();
-    </script>
-</body>
-</html>
 
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start the game
+        generateLevel(currentLevel);
+        animate();
     </script>
 </body>
 </html>
