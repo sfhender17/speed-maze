@@ -94,6 +94,12 @@
         obstacle.position.set(5, 1, 0);
         scene.add(obstacle);
 
+        const laserDoorGeometry = new THREE.BoxGeometry(3, 3, 0.5);
+        const laserDoorMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 });
+        const laserDoor = new THREE.Mesh(laserDoorGeometry, laserDoorMaterial);
+        laserDoor.position.set(10, 1.5, 0); // Position it somewhere visible
+        scene.add(laserDoor);
+        
         function updatePlayer() {
             // Movement
             if (moveDirection.forward) player.translateZ(-moveSpeed);
