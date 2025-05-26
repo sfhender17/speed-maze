@@ -276,7 +276,7 @@
         <p>Coins: <span id="game-over-coins">0</span></p>
         <p>Highest Level: <span id="game-over-level">0</span></p>
         <button id="restart-game-over-button">Restart Game</button>
-        <button id="main-menu-game-over-button">Main Menu</button>
+        <button id="go-to-shop-game-over-button">Go to Shop</button>
     </div>
 
     <div id="game-won-screen" class="ui-panel">
@@ -329,7 +329,6 @@
         // --- Firebase Globals (Provided by Canvas Environment) ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        // Corrected: Use __initial_auth_token instead of initialAuthToken in its own declaration
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let db;
@@ -519,7 +518,8 @@
         const gameOverCoins = document.getElementById('game-over-coins');
         const gameOverLevel = document.getElementById('game-over-level');
         const restartGameOverButton = document.getElementById('restart-game-over-button');
-        const mainMenuGameOverButton = document.getElementById('main-menu-game-over-button');
+        // Renamed and re-referenced this button
+        const goToShopGameOverButton = document.getElementById('go-to-shop-game-over-button');
 
         const gameWonScreen = document.getElementById('game-won-screen');
         const gameWonCoins = document.getElementById('game-won-coins');
@@ -882,7 +882,7 @@
             laserGridGroup.isLaserGrid = true;
             laserGridGroup.isActive = true; // Starts active
             laserGridGroup.interval = interval;
-            laserGridGroup.lastToggleTime = Date.now();
+            laserGridGroup.lastToggleTime = Date.2now();
 
             const laserMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.6, emissive: 0xff0000, emissiveIntensity: 0.8 });
 
@@ -1344,7 +1344,8 @@
         restartLevelButton.addEventListener('click', restartLevel);
         mainMenuFromPause.addEventListener('click', goToMainMenu);
         restartGameOverButton.addEventListener('click', startGame);
-        mainMenuGameOverButton.addEventListener('click', goToMainMenu);
+        // Updated event listener for the "Go to Shop" button on game over
+        goToShopGameOverButton.addEventListener('click', () => setGameState('SHOP'));
         restartGameWonButton.addEventListener('click', startGame);
         mainMenuGameWonButton.addEventListener('click', goToMainMenu);
         closeShopButton.addEventListener('click', () => setGameState('PLAYING')); // Close shop, return to game
