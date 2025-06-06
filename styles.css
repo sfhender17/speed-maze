@@ -1,37 +1,66 @@
 body {
   margin: 0;
-  overflow: hidden;
   font-family: 'Orbitron', sans-serif;
-  background: black;
+  overflow: hidden;
+  background: #000;
   color: white;
 }
-#game-ui {
+
+#loading-screen {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(0,0,0,0.6);
-  padding: 10px;
-  border-radius: 10px;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  font-size: 1.5rem;
 }
+
 #main-menu {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.8);
-  padding: 20px;
-  border-radius: 15px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
+  z-index: 5;
 }
+
+#main-menu h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+#main-menu button {
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  background: #0ff;
+  border: none;
+  color: black;
+  border-radius: 8px;
+}
+
+#game-ui {
+  position: absolute;
+  top: 10px; left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px;
+  border-radius: 8px;
+  z-index: 5;
+}
+
+#message {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  font-size: 1.2rem;
+  color: yellow;
+  z-index: 5;
+}
+
 canvas {
   display: block;
 }
-button {
-  padding: 10px 20px;
-  margin-top: 10px;
-  font-size: 1.2em;
-  cursor: pointer;
-}
-
