@@ -1,1 +1,37 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Orbitron', sans-serif;
+  background: black;
+  color: white;
+}
+#game-ui {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.6);
+  padding: 10px;
+  border-radius: 10px;
+}
+#main-menu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  padding: 20px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+canvas {
+  display: block;
+}
+button {
+  padding: 10px 20px;
+  margin-top: 10px;
+  font-size: 1.2em;
+  cursor: pointer;
+}
 
